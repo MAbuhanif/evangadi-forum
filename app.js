@@ -1,3 +1,4 @@
+require("dotenv").config()
 const express = require("express");
 const app = express();
 const port = 5500;
@@ -12,6 +13,8 @@ const questionRoutes = require("./routes/questionRoute");
 
 //question route middleware file
 const answerRoutes = require("./routes/answerRoute");
+//authentication middleware
+
 
 //JSON middleware
 app.use(express.json());
@@ -19,7 +22,7 @@ app.use(express.json());
 //user route middleware
 app.use("/api/users", userRoutes);
 //question route middleware
-app.use("/api/question", questionRoutes);
+app.use("/api/question",  questionRoutes);
 //user route middleware
 app.use("/api/answer", answerRoutes);
 

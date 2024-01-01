@@ -47,17 +47,18 @@ async function allQuestions(req, res) {
 }
 //function to get details of a specific question
 async function singleQuestion(req, res) {
-  const { questionid } = req.params;
+  const {questionid}  = req.params;
   const [questionRows] = await dbConnection.query(
     "SELECT * FROM questions WHERE questionid = ?",
     [questionid]
   );
-  if (questionRows.length === 0) {
-    return res
-      .status(StatusCodes.NOT_FOUND)
-      .json({ error: "Question not found" });
-  }
-  const question = questionRows[0];
-  return res.status(StatusCodes.OK).json({ question });
+  return res.status(StatusCodes.ACCEPTED).json({questionRows})
+  // if (questionRows.length === 0) {
+  //   return res
+  //     .status(StatusCodes.NOT_FOUND)
+  //     .json({ error: "Question not found" });
+  // }
+  // const question = questionRows[0];
+  // return res.status(StatusCodes.OK).json({ question });
 }
 module.exports = { postQuestion, allQuestions, singleQuestion };
