@@ -83,7 +83,7 @@ async function login(req, res) {
       .json({ msg: "something went wrong, try again later!" });
   }
 }
-
+//check-user
 async function checkUser(req, res) {
   const username = req.user.username;
   const userid = req.user.userid;

@@ -7,11 +7,21 @@ const dbConnection = require("./db/dbConfig");
 //user route middleware file
 const userRoutes = require("./routes/userRoute");
 
+//question route middleware file
+const questionRoutes = require("./routes/questionRoute");
+
+//question route middleware file
+const answerRoutes = require("./routes/answerRoute");
+
 //JSON middleware
 app.use(express.json());
 
-app.use("/api/users", userRoutes);
 //user route middleware
+app.use("/api/users", userRoutes);
+//question route middleware
+app.use("/api/question", questionRoutes);
+//user route middleware
+app.use("/api/answer", answerRoutes);
 
 async function start() {
   try {
