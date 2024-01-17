@@ -2,6 +2,7 @@ const { StatusCodes } = require("http-status-codes");
 const jwt = require("jsonwebtoken");
 
 async function authMiddleware(req, res, next) {
+  //check header
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith("Bearer")) {
     return res
@@ -9,8 +10,8 @@ async function authMiddleware(req, res, next) {
       .json({ msg: "authentication invalid!" });
   }
   const token = authHeader.split(" ")[1];
-  //   console.log(authHeader)
-  //   console.log(token)
+  // console.log(authHeader)
+  // console.log(token)
 
   try {
     const { username, userid } = jwt.verify(token, process.env.JWT_SECRET);

@@ -1,55 +1,34 @@
 const { StatusCodes } = require("http-status-codes");
 const dbConnection = require("../db/dbConfig");
+const { v4: uuidv4 } = require("uuid");
 
 //post answer function
 async function postAnswer(req, res) {
   const { answer } = req.body;
   const { questionid } = req.params;
+  // const userid = req.user.id;
   if (!answer) {
     return res
       .status(StatusCodes.BAD_REQUEST)
-      .json({ msg: "Please provide the answer content" });
+      .json({ msg: "Please provide the answer" });
   }
 
   try {
-    // check if the client posts an identical answer
-    const [existingAnswer] = await dbConnection.query(
-      "SELECT questionid, userid FROM answers WHERE answer = ?",
-      [answer]
-    );
+    const answerid = uuidv4();
 
-    if (existingAnswer.length > 0) {
-      return res
-        .status(StatusCodes.BAD_REQUEST)
-        .send("Your answer is identical to a previous one.");
-    }
+    await dbConnection.query(
+      "INSERT INTO answer (answerid, questionid, userid, answer) VALUES (?, ?, ?, ?)",
+      [answerid, questionid, req.user.userid, answer]
+    );
+    return res.status(StatusCodes.ACCEPTED).json({
+      message: "Answer posted successfully",
+    });
   } catch (error) {
     console.error(error);
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .send("Something went wrong. Please try again");
   }
-
-  // Get user information from the JWT token
-  const userid = req.user.userid;
-  const username = req.user.username;
-
-  const [insertResult] = await dbConnection.query(
-    "INSERT INTO answers (userid, username, questionid, answer) VALUES (?, ?, ?, ?)",
-    [userid, username, questionid, answer]
-  );
-
-  const insertedAnswerId = insertResult.insertId;
-
-  const email = req.user.email;
-
-  return res.status(StatusCodes.ACCEPTED).json({
-    message: "Answer posted successfully",
-    answer_id: insertedAnswerId,
-    questionid,
-    email,
-    username,
-  });
 }
 
 //get answer function
@@ -58,21 +37,12 @@ async function getAnswer(req, res) {
   const { questionid } = req.params;
 
   try {
-    const [answers] = await dbConnection.query(
-      "SELECT * FROM answers WHERE questionid = ?",
-      [questionid]
-    );
+    const allAnswersForQuestion = `SELECT username, answer FROM answer JOIN users ON answer.userid = users.userid WHERE answer.questionid = ?`;
+    const [answers] = await dbConnection.query(allAnswersForQuestion, [
+      questionid,
+    ]);
 
-    if (answers.length === 0) {
-      return res.status(StatusCodes.NOT_FOUND).json({
-        msg: "No answers found for the specified question",
-      });
-    }
-
-    return res.status(StatusCodes.OK).json({
-      msg: "Answers found for the specified question",
-      answers,
-    });
+    return res.status(StatusCodes.OK).json({ answers });
   } catch (error) {
     console.error(error);
     return res

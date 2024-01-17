@@ -1,27 +1,26 @@
 const dbConnection = require("../db/dbConfig");
 const { StatusCodes } = require("http-status-codes");
-// const jwt = require("jsonwebtoken");
+const { v4: uuidv4 } = require("uuid");
 
 //function to post questions
 async function postQuestion(req, res) {
-  const { title, description, tag } = req.body;
-  if (!title || !description || !tag) {
+  const { title, description } = req.body;
+  if (!title || !description) {
     res
       .status(StatusCodes.BAD_REQUEST)
-      .json({ msg: "please fill all required fields!" });
+      .json({ error: "please fill all required fields!" });
   }
   try {
-    const userid = req.user.userid;
-    // const username = req.user.username;
-    const [result] = await dbConnection.query(
-      "INSERT INTO questions (userid, title, description, tag) VALUES (?,?,?,?)",
-      [userid, title, description, tag]
+    const questionid = uuidv4();
+
+    await dbConnection.query(
+      "INSERT INTO questions (questionid, title, description, userid) VALUES (?,?,?,?)",
+      [questionid, title, description, req.user.userid]
     );
-    // return res.status(StatusCodes.ACCEPTED).json({ result });
 
     return res
-      .status(StatusCodes.ACCEPTED)
-      .json({ msg: "question posted successfully!" });
+      .status(StatusCodes.OK)
+      .json({ msg: "question added successfully!" });
   } catch (error) {
     console.log(error.message);
     return res
@@ -33,32 +32,29 @@ async function postQuestion(req, res) {
 async function allQuestions(req, res) {
   try {
     const [allQuestion] = await dbConnection.query(
-      "SELECT * FROM questions ORDER BY questionid DESC "
+      "SELECT title, questionid, username FROM questions JOIN users ON users.userid = questions.userid ORDER BY id DESC "
     );
-    return res
-      .status(StatusCodes.ACCEPTED)
-      .json({ msg: "all questions posted are:", question: allQuestion });
+    return res.status(StatusCodes.OK).json({ allQuestion });
   } catch (error) {
     console.log(error.message);
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ msg: "somthing went wrong, try again!" });
+      .json({ error: "somthing went wrong, try again!" });
   }
 }
 //function to get details of a specific question
 async function singleQuestion(req, res) {
-  const {questionid}  = req.params;
-  const [questionRows] = await dbConnection.query(
-    "SELECT * FROM questions WHERE questionid = ?",
+  const questionid = req.params.questionid;
+  const [question] = await dbConnection.query(
+    "SELECT title, description FROM questions WHERE questionid = ?",
     [questionid]
   );
-  return res.status(StatusCodes.ACCEPTED).json({questionRows})
-  // if (questionRows.length === 0) {
-  //   return res
-  //     .status(StatusCodes.NOT_FOUND)
-  //     .json({ error: "Question not found" });
-  // }
-  // const question = questionRows[0];
-  // return res.status(StatusCodes.OK).json({ question });
+
+  if (question.length == 0) {
+    return res
+      .status(StatusCodes.NOT_FOUND)
+      .json({ error: "Question not found" });
+  }
+  return res.status(StatusCodes.OK).json({ question });
 }
 module.exports = { postQuestion, allQuestions, singleQuestion };

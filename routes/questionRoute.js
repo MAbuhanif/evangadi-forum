@@ -8,15 +8,14 @@ const {
   allQuestions,
   singleQuestion,
 } = require("../controller/questionController");
-const authMiddleware = require("../middleware/authMiddleware");
 
 //ask-question route
-router.post("/ask-question", authMiddleware, postQuestion);
+router.post("/ask-question", postQuestion);
 
 //get all questions route
-router.get("/allQuestions", authMiddleware, allQuestions);
+router.get("/allQuestions", allQuestions);
 
 //single question route
-router.get("/singleQuestion", authMiddleware, singleQuestion);
+router.get("/singleQuestion/:questionid", singleQuestion);
 
 module.exports = router;

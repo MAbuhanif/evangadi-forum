@@ -1,7 +1,12 @@
-require("dotenv").config()
+require("dotenv").config();
 const express = require("express");
 const app = express();
 const port = 5500;
+
+//security packeges
+const cors = require("cors");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
 
 const dbConnection = require("./db/dbConfig");
 
@@ -13,8 +18,19 @@ const questionRoutes = require("./routes/questionRoute");
 
 //question route middleware file
 const answerRoutes = require("./routes/answerRoute");
-//authentication middleware
 
+//authentication middleware
+const authMiddleware = require("./middleware/authMiddleware");
+
+//using security middlewares
+app.use(cors());
+app.use(helmet());
+app.use(
+  rateLimit({
+    windowMs: 5 * 60 * 1000, //5 minutes
+    max: 100, //limit each IP to 100 requests per windowMs
+  })
+);
 
 //JSON middleware
 app.use(express.json());
@@ -22,9 +38,9 @@ app.use(express.json());
 //user route middleware
 app.use("/api/users", userRoutes);
 //question route middleware
-app.use("/api/question",  questionRoutes);
+app.use("/api/question", authMiddleware, questionRoutes);
 //user route middleware
-app.use("/api/answer", answerRoutes);
+app.use("/api/answer", authMiddleware, answerRoutes);
 
 async function start() {
   try {
@@ -38,10 +54,4 @@ async function start() {
 }
 start();
 
-// app.listen(port, (err) => {
-//   if (err) {
-//     console.log(err.message);
-//   } else {
-//     console.log(`listining on ${port}`);
-//   }
-// });
+
